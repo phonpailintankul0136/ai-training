@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ลงทะเบียนอบรม AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+  :root {
+    --bg:#f0f4f8;
+    --surface:#ffffff;
+    --surface2:#f7f9fc;
+    --accent:#2563eb;
+    --accent-light:#eff6ff;
+    --accent2:#7c3aed;
+    --accent2-light:#f5f3ff;
+    --accent3:#059669;
+    --accent3-light:#ecfdf5;
+    --text:#1e293b;
+    --text2:#475569;
+    --muted:#94a3b8;
+    --border:#e2e8f0;
+    --border-accent:#bfdbfe;
+    --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06);
+    --shadow-lg:0 8px 32px rgba(37,99,235,0.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+  /* subtle dot pattern bg */
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:radial-gradient(circle,#cbd5e1 1px,transparent 1px);
+    background-size:28px 28px;z-index:0;opacity:0.55;
+  }
+  body::after{
+    content:'';position:fixed;top:0;left:0;right:0;height:320px;
+    background:linear-gradient(160deg,#dbeafe 0%,#ede9fe 50%,#f0fdf4 100%);
+    z-index:0;opacity:0.6;
+  }
+
+  .container{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:40px 20px 60px}
+
+  /* Header */
+  .header{text-align:center;margin-bottom:48px;animation:fadeDown 0.7s ease forwards}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid var(--border-accent);
+    border-radius:999px;padding:7px 18px;
+    font-size:12px;font-weight:600;color:var(--accent);
+    letter-spacing:0.06em;text-transform:uppercase;margin-bottom:22px;
+    box-shadow:0 2px 8px rgba(37,99,235,0.1);
+  }
+  .badge-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 2px rgba(37,99,235,0.25);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.6}}
+
+  h1{
+    font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.1;
+    background:linear-gradient(135deg,#1e40af 0%,#2563eb 40%,#7c3aed 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    margin-bottom:10px;
+  }
+  .subtitle{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted)}
+  .subtitle span{color:var(--accent);font-weight:600}
+
+  /* Cards */
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:32px;margin-bottom:24px;
+    box-shadow:var(--shadow);
+    animation:fadeUp 0.55s ease forwards;opacity:0;
+  }
+  .card:nth-child(1){animation-delay:0.05s}
+  .card:nth-child(2){animation-delay:0.15s}
+  .card:nth-child(3){animation-delay:0.25s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+  .card-title{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+    color:var(--accent);margin-bottom:22px;display:flex;align-items:center;gap:10px;
+  }
+  .card-title-bar{width:3px;height:16px;background:var(--accent);border-radius:2px}
+
+  /* Progress grid */
+  .progress-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+
+  .person-card{
+    background:var(--surface2);border:1.5px solid var(--border);
+    border-radius:14px;padding:14px 8px;text-align:center;
+    transition:all 0.25s;position:relative;overflow:hidden;
+  }
+  .person-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.08)}
+  .person-card.registered{
+    border-color:#a7f3d0;background:var(--accent3-light);
+  }
+  .person-card.registered::after{
+    content:'✓';position:absolute;top:7px;right:9px;
+    font-size:10px;color:var(--accent3);font-weight:800;
+  }
+  .person-avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#c7d2fe,#bfdbfe);
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;margin:0 auto 9px;border:2px solid #e0e7ff;
+    transition:all 0.25s;
+  }
+  .person-card.registered .person-avatar{
+    background:linear-gradient(135deg,#a7f3d0,#6ee7b7);
+    border-color:#a7f3d0;
+  }
+  .person-name{font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+  .person-status{
+    font-size:9px;font-weight:600;color:var(--muted);
+    padding:2px 7px;border-radius:999px;background:var(--border);display:inline-block;
+  }
+  .person-card.registered .person-status{color:var(--accent3);background:#d1fae5}
+
+  /* Total bar */
+  .total-bar{
+    background:linear-gradient(135deg,#eff6ff,#f5f3ff);
+    border:1px solid var(--border-accent);border-radius:14px;
+    padding:16px 22px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .total-left{display:flex;align-items:center;gap:12px}
+  .total-icon{font-size:22px}
+  .total-label{font-size:13px;color:var(--text2);font-weight:500}
+  .total-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .total-count{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--accent)}
+  .total-count span{font-size:14px;color:var(--muted);font-weight:400}
+  .progress-track{
+    height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:14px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    border-radius:999px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Reg list */
+  .reg-list{list-style:none;margin-top:18px}
+  .reg-item{
+    display:flex;align-items:center;gap:12px;padding:11px 0;
+    border-bottom:1px solid var(--border);font-size:13px;
+    animation:fadeIn 0.35s ease forwards;opacity:0;
+  }
+  @keyframes fadeIn{to{opacity:1}}
+  .reg-item:last-child{border-bottom:none}
+  .reg-num{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    color:var(--accent);width:20px;text-align:right;flex-shrink:0;font-weight:600;
+  }
+  .reg-dot{
+    width:8px;height:8px;border-radius:50%;background:var(--accent3);
+    box-shadow:0 0 0 2px #d1fae5;flex-shrink:0;
+  }
+  .reg-name{font-weight:600;flex:1;color:var(--text)}
+  .reg-time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+  .empty-state{text-align:center;padding:20px 0;color:var(--muted);font-size:13px}
+
+  /* Refresh btn */
+  .btn-refresh{
+    background:#fff;border:1px solid var(--border);border-radius:8px;
+    padding:6px 14px;font-family:'Prompt',sans-serif;font-size:12px;color:var(--text2);
+    cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;
+    float:right;margin-top:-4px;box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  }
+  .btn-refresh:hover{color:var(--accent);border-color:var(--border-accent);background:var(--accent-light)}
+  .spinning{animation:spin 0.8s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Form */
+  .form-label{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:block}
+  .select-wrapper{position:relative;margin-bottom:20px}
+  select{
+    width:100%;background:#fff;border:1.5px solid var(--border);border-radius:12px;
+    padding:14px 42px 14px 16px;font-family:'Prompt',sans-serif;font-size:15px;font-weight:500;
+    color:var(--text);appearance:none;cursor:pointer;transition:all 0.2s;outline:none;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+  select option{background:#fff;color:var(--text)}
+  .select-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--accent);pointer-events:none;font-size:12px}
+
+  .time-info{display:flex;gap:12px;margin-bottom:24px}
+  .time-chip{
+    flex:1;background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;
+  }
+  .time-icon{font-size:20px}
+  .time-detail{flex:1}
+  .time-key{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:2px}
+  .time-val{font-size:13px;font-weight:600;color:var(--text)}
+
+  .btn-register{
+    width:100%;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none;border-radius:14px;padding:16px;
+    font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;
+    color:#fff;cursor:pointer;position:relative;overflow:hidden;
+    transition:all 0.3s;letter-spacing:0.02em;
+    box-shadow:0 4px 18px rgba(37,99,235,0.25);
+  }
+  .btn-register::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.12);opacity:0;transition:opacity 0.2s}
+  .btn-register:hover::before{opacity:1}
+  .btn-register:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,0.35)}
+  .btn-register:active{transform:translateY(0)}
+  .btn-register:disabled{
+    background:var(--surface2);color:var(--muted);cursor:not-allowed;
+    transform:none;box-shadow:none;border:1px solid var(--border);
+  }
+  .already-note{
+    display:none;margin-top:12px;padding:12px 16px;
+    background:#fffbeb;border:1px solid #fde68a;
+    border-radius:10px;font-size:13px;color:#92400e;text-align:center;
+  }
+
+  @media(max-width:600px){
+    .progress-grid{grid-template-columns:repeat(3,1fr)}
+    .time-info{flex-direction:column}
+  }
+  @media(max-width:380px){
+    .progress-grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="badge"><span class="badge-dot"></span>AI Training Session</div>
+    <h1>ระบบลงทะเบียนอบรม AI</h1>
+    <p class="subtitle">วันที่ <span>23 มีนาคม 2569</span> &nbsp;·&nbsp; AI Training Workshop</p>
+  </div>
+
+  <!-- STATUS CARD -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-bar"></div>
+      สถานะการลงทะเบียน
+      <button class="btn-refresh" onclick="loadRegistrations()" id="refreshBtn">
+        <span id="refreshIcon">&#x21BB;</span> รีเฟรช
+      </button>
+    </div>
+
+    <div class="progress-grid" id="progressGrid"></div>
+
+    <div class="total-bar">
+      <div class="total-left">
+        <span class="total-icon">&#x1F465;</span>
+        <div>
+          <div class="total-label">ผู้ลงทะเบียนแล้ว</div>
+          <div class="total-sub" id="totalSub">รอการลงทะเบียน...</div>
+        </div>
+      </div>
+      <div class="total-count" id="totalCount">0 <span>/ 6</span></div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+
+    <ul class="reg-list" id="regList">
+      <li class="empty-state">&#x23F3; กำลังโหลดข้อมูล...</li>
+    </ul>
+  </div>
+
+  <!-- REGISTER CARD -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-bar"></div>
+      ลงทะเบียนเข้าอบรม
+    </div>
+
+    <div class="time-info">
+      <div class="time-chip">
+        <span class="time-icon">&#x1F4C5;</span>
+        <div class="time-detail">
+          <div class="time-key">วันที่อบรม</div>
+          <div class="time-val">23 มีนาคม 2569</div>
+        </div>
+      </div>
+      <div class="time-chip">
+        <span class="time-icon">&#x1F916;</span>
+        <div class="time-detail">
+          <div class="time-key">หลักสูตร</div>
+          <div class="time-val">AI Training Workshop</div>
+        </div>
+      </div>
+    </div>
+
+    <label class="form-label" for="nameSelect">เลือกชื่อของคุณ</label>
+    <div class="select-wrapper">
+      <select id="nameSelect" onchange="onSelectChange()">
+        <option value="">-- กรุณาเลือกชื่อ --</option>
+        <option value="พี่เอ๋">พี่เอ๋</option>
+        <option value="พี่แบงค์">พี่แบงค์</option>
+        <option value="พี่โอ">พี่โอ</option>
+        <option value="พี่ซา">พี่ซา</option>
+        <option value="พี่หยุย">พี่หยุย</option>
+        <option value="พี่โม">พี่โม</option>
+      </select>
+      <span class="select-arrow">&#x25BC;</span>
+    </div>
+
+    <div class="already-note" id="alreadyNote">&#x2705; คุณลงทะเบียนเรียบร้อยแล้ว</div>
+    <button class="btn-register" id="regBtn" onclick="register()" disabled>
+      ยืนยันลงทะเบียน &#x2192;
+    </button>
+  </div>
+
+</div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbyBiB6vyCc5b46D3hCKE8msBlkvat7qze1N6MkBqmAE5nF1klGxrO9j3B5IEZKEb0p-/exec';
+var MEMBERS = ['พี่เอ๋','พี่แบงค์','พี่โอ','พี่ซา','พี่หยุย','พี่โม'];
+var AVATARS = {'พี่เอ๋':'👩','พี่แบงค์':'👨','พี่โอ':'🧑','พี่ซา':'👩‍💼','พี่หยุย':'🧑‍💻','พี่โม':'👩‍🎨'};
+var TOTAL = MEMBERS.length;
+var registeredNames = [];
+
+function buildProgressGrid(registered) {
+  var html = '';
+  for (var i = 0; i < MEMBERS.length; i++) {
+    var name = MEMBERS[i];
+    var done = registered.indexOf(name) >= 0;
+    html += '<div class="person-card' + (done ? ' registered' : '') + '">';
+    html += '<div class="person-avatar">' + AVATARS[name] + '</div>';
+    html += '<div class="person-name">' + name + '</div>';
+    html += '<div class="person-status">' + (done ? 'ลงทะเบียนแล้ว' : 'รอลงทะเบียน') + '</div>';
+    html += '</div>';
+  }
+  document.getElementById('progressGrid').innerHTML = html;
+}
+
+function updateCounter(count) {
+  document.getElementById('totalCount').innerHTML = count + ' <span>/ ' + TOTAL + '</span>';
+  document.getElementById('progressFill').style.width = (count / TOTAL * 100) + '%';
+  var remaining = TOTAL - count;
+  document.getElementById('totalSub').textContent = remaining > 0
+    ? 'รออีก ' + remaining + ' ท่าน'
+    : 'ครบทุกท่านแล้ว! 🎉';
+}
+
+function buildRegList(rows) {
+  var ul = document.getElementById('regList');
+  if (!rows || rows.length === 0) {
+    ul.innerHTML = '<li class="empty-state">ยังไม่มีผู้ลงทะเบียน</li>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    html += '<li class="reg-item" style="animation-delay:' + (i * 0.06) + 's">';
+    html += '<span class="reg-num">' + (i + 1) + '</span>';
+    html += '<span class="reg-dot"></span>';
+    html += '<span class="reg-name">' + rows[i].name + '</span>';
+    html += '<span class="reg-time">' + rows[i].time + '</span>';
+    html += '</li>';
+  }
+  ul.innerHTML = html;
+}
+
+function loadRegistrations() {
+  var btn = document.getElementById('refreshBtn');
+  var icon = document.getElementById('refreshIcon');
+  icon.innerHTML = '<span class="spinning">&#x21BB;</span>';
+  btn.disabled = true;
+
+  var cbName = 'cbLoad_' + Date.now();
+  var script = document.createElement('script');
+  script.src = GAS_URL + '?action=getAll&callback=' + cbName + '&t=' + Date.now();
+
+  var timer = setTimeout(function() {
+    cleanup(); icon.innerHTML = '&#x21BB;'; btn.disabled = false;
+    document.getElementById('regList').innerHTML = '<li class="empty-state">&#x26A0;&#xFE0F; โหลดข้อมูลหมดเวลา กดรีเฟรชอีกครั้ง</li>';
+  }, 12000);
+
+  window[cbName] = function(res) {
+    clearTimeout(timer); cleanup();
+    icon.innerHTML = '&#x21BB;'; btn.disabled = false;
+    if (res && res.result === 'success') {
+      var rows = res.data || [];
+      registeredNames = [];
+      for (var i = 0; i < rows.length; i++) registeredNames.push(rows[i].name);
+      buildProgressGrid(registeredNames);
+      updateCounter(registeredNames.length);
+      buildRegList(rows);
+    } else {
+      buildProgressGrid([]); updateCounter(0);
+      document.getElementById('regList').innerHTML = '<li class="empty-state">&#x26A0;&#xFE0F; ไม่สามารถโหลดข้อมูลได้</li>';
+    }
+    onSelectChange();
+  };
+
+  script.onerror = function() {
+    clearTimeout(timer); cleanup();
+    icon.innerHTML = '&#x21BB;'; btn.disabled = false;
+    document.getElementById('regList').innerHTML = '<li class="empty-state">&#x26A0;&#xFE0F; ไม่สามารถเชื่อมต่อได้</li>';
+  };
+
+  function cleanup() {
+    if (script.parentNode) script.parentNode.removeChild(script);
+    delete window[cbName];
+  }
+  document.body.appendChild(script);
+}
+
+function onSelectChange() {
+  var val = document.getElementById('nameSelect').value;
+  var btn = document.getElementById('regBtn');
+  var note = document.getElementById('alreadyNote');
+  if (!val) { btn.disabled = true; note.style.display = 'none'; return; }
+  if (registeredNames.indexOf(val) >= 0) {
+    btn.disabled = true; note.style.display = 'block';
+  } else {
+    btn.disabled = false; note.style.display = 'none';
+  }
+}
+
+function register() {
+  var name = document.getElementById('nameSelect').value;
+  if (!name) return;
+  var now = new Date();
+  var thaiTime = now.toLocaleDateString('th-TH', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+
+  Swal.fire({
+    title: 'กำลังลงทะเบียน...',
+    html: '<span style="font-family:Prompt,sans-serif;color:#475569">กรุณารอสักครู่<br><b style="color:#2563eb">' + name + '</b></span>',
+    background: '#ffffff', color: '#1e293b',
+    allowOutsideClick: false,
+    didOpen: function() { Swal.showLoading(); }
+  });
+
+  var cbName = 'cbSave_' + Date.now();
+  var script = document.createElement('script');
+  var params = 'name=' + encodeURIComponent(name) + '&time=' + encodeURIComponent(thaiTime) + '&callback=' + cbName;
+  script.src = GAS_URL + '?' + params;
+  var done = false;
+
+  window[cbName] = function(res) {
+    done = true; cleanup();
+    if (res && res.result === 'success') {
+      Swal.fire({
+        icon: 'success', title: 'ลงทะเบียนสำเร็จ! 🎉',
+        html: '<span style="font-family:Prompt,sans-serif;color:#475569"><b style="color:#059669;font-size:18px">' + name + '</b><br>ลงทะเบียนเรียบร้อยแล้ว</span>',
+        background: '#ffffff', color: '#1e293b',
+        confirmButtonColor: '#2563eb', confirmButtonText: 'เยี่ยม! 👍'
+      }).then(function() {
+        document.getElementById('nameSelect').value = '';
+        loadRegistrations();
+      });
+    } else { showError(); }
+  };
+
+  script.onerror = function() { if (!done) { cleanup(); showError(); } };
+  setTimeout(function() { if (!done) { cleanup(); showError(); } }, 15000);
+
+  function cleanup() {
+    if (script.parentNode) script.parentNode.removeChild(script);
+    delete window[cbName];
+  }
+  document.body.appendChild(script);
+}
+
+function showError() {
+  Swal.fire({
+    icon: 'error', title: 'เกิดข้อผิดพลาด',
+    text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+    background: '#ffffff', color: '#1e293b',
+    confirmButtonColor: '#2563eb', confirmButtonText: 'ลองใหม่'
+  });
+}
+
+// init
+buildProgressGrid([]);
+updateCounter(0);
+loadRegistrations();
+</script>
+</body>
+</html>
